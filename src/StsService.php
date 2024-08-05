@@ -45,6 +45,7 @@ class StsService
          * 保证与 AssumeRoleRequest::fromMap 保持一致.
          */
         $map = $this->convertKeysToStudlyCase($map);
+
         if (! isset($map['RoleArn'])) {
             $map['RoleArn'] = config('sts.role_arn');
         }
@@ -85,6 +86,8 @@ class StsService
         return $this->getAssumeRoleResponse();
     }
 
+    public function getCredentials() {}
+
     public function getAssumeRoleResponse(): AssumeRoleResponse
     {
         return $this->assumeRoleResponse;
@@ -92,19 +95,24 @@ class StsService
 
     public function generateStatement(string $effect, array $action, array $resource, array $condition = []): array
     {
-        return [
+        $statement = [
             'Effect' => $effect,
             'Action' => $action,
             'Resource' => $resource,
-            'Condition' => $condition,
         ];
+        if (! empty($condition)) {
+            $statement = array_merge($statement, ['Condition' => $condition]);
+        }
+        return $statement;
     }
 
     public function generatePolicy(array $statement): array
     {
         return [
-            'Version' => '1',
-            'Statement' => $statement,
+            'policy' => [
+                'Version' => '1',
+                'Statement' => $statement,
+            ],
         ];
     }
 
@@ -113,8 +121,7 @@ class StsService
         $convertedArray = [];
         foreach ($array as $key => $value) {
             // 将键名转换为 StudlyCase 格式
-            $newKey = Str::studly($key);
-
+            $newKey = is_string($key) ? Str::studly($key) : $key;
             // 如果值是数组，则递归调用
             if (is_array($value)) {
                 $value = $this->{__FUNCTION__}($value);
