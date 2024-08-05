@@ -17,14 +17,13 @@ use AlibabaCloud\SDK\Sts\V20150401\Models\AssumeRoleResponse;
 use AlibabaCloud\SDK\Sts\V20150401\Sts;
 use AlibabaCloud\Tea\Utils\Utils\RuntimeOptions;
 use Darabonba\OpenApi\Models\Config;
+use Hyperf\Stringable\Str;
 
 use function Hyperf\Config\config;
 
 class StsService
 {
     protected Sts $sts;
-
-    protected AssumeRoleRequest $assumeRoleRequest;
 
     protected AssumeRoleResponse $assumeRoleResponse;
 
@@ -40,21 +39,29 @@ class StsService
         $this->sts = new Sts($config);
     }
 
-    public function setAssumeRoleRequest(array $config = []): void
+    public function generateAssumeRoleRequest(array $map = []): AssumeRoleRequest
     {
-        //        if (! isset($config['RoleArn'])) {
-        //            $config['RoleArn'] = config('sts.role_arn');
-        //        }
-        //        if (! isset($config['roleSessionName'])) {
-        //            $config['roleSessionName'] = config('sts.role_session_name');
-        //        }
-        //        if (! isset($config['durationSeconds'])) {
-        //            $config['durationSeconds'] = config('sts.duration_seconds');
-        //        }
-        //        if (! isset($config['externalId'])) {
-        //            $config['externalId'] = config('sts.external_id');
-        //        }
-        $this->assumeRoleRequest = AssumeRoleRequest::fromMap($config);
+        /**
+         * 保证与 AssumeRoleRequest::fromMap 保持一致.
+         */
+        $map = $this->convertKeysToStudlyCase($map);
+        if (! isset($map['RoleArn'])) {
+            $map['RoleArn'] = config('sts.role_arn');
+        }
+        if (! isset($map['RoleSessionName'])) {
+            $map['RoleSessionName'] = config('sts.role_session_name');
+        }
+        if (! isset($map['DurationSeconds'])) {
+            $map['DurationSeconds'] = config('sts.duration_seconds');
+        }
+        if (! isset($map['ExternalId'])) {
+            $map['ExternalId'] = config('sts.external_id');
+        }
+        if (empty($map['Policy'])) {
+            $map['Policy'] = config('sts.policy');
+        }
+
+        return AssumeRoleRequest::fromMap($map);
     }
 
     public function setRuntimeOptions(array $config): void
@@ -72,17 +79,9 @@ class StsService
         return $this->sts;
     }
 
-    public function getAssumeRoleRequest(): AssumeRoleRequest
-    {
-        return $this->assumeRoleRequest;
-    }
-
     public function assumeRole(AssumeRoleRequest $request): AssumeRoleResponse
     {
-        if (empty($request)) {
-            $this->setAssumeRoleRequest();
-        }
-        $this->assumeRoleResponse = $this->sts->assumeRole($this->assumeRoleRequest);
+        $this->assumeRoleResponse = $this->sts->assumeRole($request);
         return $this->getAssumeRoleResponse();
     }
 
@@ -91,18 +90,40 @@ class StsService
         return $this->assumeRoleResponse;
     }
 
-    public function generatePolicy(string $effect, array $action, array $resource, array $condition = []): array
+    public function generateStatement(string $effect, array $action, array $resource, array $condition = []): array
+    {
+        return [
+            'Effect' => $effect,
+            'Action' => $action,
+            'Resource' => $resource,
+            'Condition' => $condition,
+        ];
+    }
+
+    public function generatePolicy(array $statement): array
     {
         return [
             'Version' => '1',
-            'Statement' => [
-                [
-                    'Effect' => $effect,
-                    'Action' => $action,
-                    'Resource' => $resource,
-                    'Condition' => $condition,
-                ],
-            ],
+            'Statement' => $statement,
         ];
+    }
+
+    private function convertKeysToStudlyCase(array $array): array
+    {
+        $convertedArray = [];
+        foreach ($array as $key => $value) {
+            // 将键名转换为 StudlyCase 格式
+            $newKey = Str::studly($key);
+
+            // 如果值是数组，则递归调用
+            if (is_array($value)) {
+                $value = $this->{__FUNCTION__}($value);
+            }
+
+            // 将转换后的键和值放入新数组
+            $convertedArray[$newKey] = $value;
+        }
+
+        return $convertedArray;
     }
 }

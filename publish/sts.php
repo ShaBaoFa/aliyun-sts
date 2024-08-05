@@ -19,4 +19,41 @@ return [
     'endpoint' => env('STS_ENDPOINT', 'sts.cn-hangzhou.aliyuncs.com'),
     'duration_seconds' => env('STS_DURATION_SECONDS', 3000),
     'external_id' => env('STS_EXTERNAL_ID', ''),
+    /**
+     * 授予RAM用户使用OSS命令行工具访问目录mybucket/hangzhou/2014/和mybucket/hangzhou/2015/并列举目录中文件的权限.
+     *
+     * RAM用户不清楚目录中有哪些文件，可以使用OSS命令行工具或API直接获取目录信息，此场景下需要添加ListObjects权限。
+     */
+    'policy' => [
+        'Version' => '1',
+        'Statement' => [
+            [
+                'Effect' => 'Allow',
+                'Action' => [
+                    'oss:GetObject',
+                ],
+                'Resource' => [
+                    'acs:oss:*:*:mybucket/hangzhou/2014/*',
+                    'acs:oss:*:*:mybucket/hangzhou/2015/*',
+                ],
+            ],
+            [
+                'Effect' => 'Allow',
+                'Action' => [
+                    'oss:ListObjects',
+                ],
+                'Resource' => [
+                    'acs:oss:*:*:mybucket',
+                ],
+                'Condition' => [
+                    'StringLike' => [
+                        'oss:Prefix' => [
+                            'hangzhou/2014/*',
+                            'hangzhou/2015/*',
+                        ],
+                    ],
+                ],
+            ],
+        ],
+    ],
 ];
