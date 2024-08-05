@@ -9,22 +9,51 @@ declare(strict_types=1);
  * @contact  group@hyperf.io
  * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
  */
+require __DIR__ . '/vendor/autoload.php';
+
 use Wlfpanda1012\AliyunSts\StsService;
 
-use function Hyperf\Config\config;
+class demo
+{
+    public function main(): void
+    {
+        $service = new StsService([
+            'access_key_id' => 'LTAI5t8ziZRG1ztCdCzuYDVv',
+            'access_key_secret' => 'lnCmnMxHrtj8VqUEBBlpYQ0gmN6GU5',
+            'endpoint' => 'sts.cn-hangzhou.aliyuncs.com',
+        ]);
+        $service->setAssumeRoleRequest([
+            'RoleArn' => 'acs:ram::1847917503659253:role/wlfossuploaderrole',
+            'RoleSessionName' => 'test_seesion',
+            'DurationSeconds' => 3000,
+            'ExternalId' => 'test_id',
+            'Policy' => [
+                'Statement' => [
+                    [
+                        'Action' => [
+                            'oss:GetObject',
+                            'oss:PutObject',
+                            'oss:DeleteObject',
+                            'oss:ListParts',
+                            'oss:AbortMultipartUpload',
+                            'oss:ListObjects',
+                        ],
+                        'Effect' => 'Allow',
+                        'Resource' => [
+                            'acs:oss:*:*:wlf-upload-file',
+                            'acs:oss:*:*:wlf-upload-file/*',
+                        ],
+                    ],
+                ],
+                'Version' => '1'
+            ],
+        ]);
+        $request = $service->getAssumeRoleRequest();
+        $service->assumeRole($request);
 
-$service = new StsService([
-    'access_key_id' => config('sts.access_key_id'),
-    'access_key_secret' => config('sts.access_key_secret'),
-    'endpoint' => config('sts.endpoint'),
-]);
-$service->setAssumeRoleRequest(config: [
-    'RoleArn' => config('sts.role_arn'),
-    'roleSessionName' => config('sts.role_session_name'),
-    'durationSeconds' => config('sts.duration_seconds'),
-    'policy' => '',
-]);
+        var_dump($service->getAssumeRoleResponse());
+    }
+}
 
-$service->assumeRole();
-
-var_dump($service->getAssumeRoleResponse());
+$demo = new demo();
+$demo->main();

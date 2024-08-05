@@ -12,4 +12,11 @@ declare(strict_types=1);
 
 namespace Wlfpanda1012\AliyunSts\Constants;
 
-enum OSSResource {}
+use Hyperf\Constants\Annotation\Constants;
+
+#[Constants]
+enum OSSEffect: string
+{
+    case ALLOW = 'Allow';
+    case DENY = 'Deny';
+}

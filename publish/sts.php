@@ -19,26 +19,4 @@ return [
     'endpoint' => env('STS_ENDPOINT', 'sts.cn-hangzhou.aliyuncs.com'),
     'duration_seconds' => env('STS_DURATION_SECONDS', 3000),
     'external_id' => env('STS_EXTERNAL_ID', ''),
-/**
- * 'policy'    => [
- * "Statement" => [
- * [
- * "Action" => [
- * "oss:GetObject",
- * "oss:PutObject",
- * "oss:DeleteObject",
- * "oss:ListParts",
- * "oss:AbortMultipartUpload",
- * "oss:ListObjects"
- * ],
- * "Effect" => "Allow",
- * "Resource" => [
- * "acs:oss:*:*:".env('BUCKET_NAME', 'xxxx-xxxx'),
- * "acs:oss:*:*:".env('BUCKET_NAME', 'xxxx-xxxx')."/*"
- * ]
- * ]
- * ],
- * "Version" => "1"
- * ].
- */
 ];
