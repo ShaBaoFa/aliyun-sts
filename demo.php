@@ -18,12 +18,12 @@ class demo
     public function main(): void
     {
         $service = new StsService([
-            'access_key_id' => 'LTAI5t8ziZRG1ztCdCzuYDVv',
-            'access_key_secret' => 'lnCmnMxHrtj8VqUEBBlpYQ0gmN6GU5',
+            'access_key_id' => 'xxxxxx',
+            'access_key_secret' => 'xxxxxxx',
             'endpoint' => 'sts.cn-hangzhou.aliyuncs.com',
         ]);
         $service->setAssumeRoleRequest([
-            'RoleArn' => 'acs:ram::1847917503659253:role/wlfossuploaderrole',
+            'RoleArn' => 'acs:ram::xxxxx:role/xxxxx',
             'RoleSessionName' => 'test_seesion',
             'DurationSeconds' => 3000,
             'ExternalId' => 'test_id',
