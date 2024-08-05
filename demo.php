@@ -18,12 +18,8 @@ class demo
     public function main(): void
     {
         $service = new StsService([
-            'access_key_id' => 'xxxxxx',
-            'access_key_secret' => 'xxxxxxx',
-            'endpoint' => 'sts.cn-hangzhou.aliyuncs.com',
         ]);
         $service->setAssumeRoleRequest([
-            'RoleArn' => 'acs:ram::xxxxx:role/xxxxx',
             'RoleSessionName' => 'test_seesion',
             'DurationSeconds' => 3000,
             'ExternalId' => 'test_id',
