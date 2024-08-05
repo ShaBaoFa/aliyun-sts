@@ -40,7 +40,7 @@ class StsService
         $this->sts = new Sts($config);
     }
 
-    public function setAssumeRoleRequest(string $roleArn,array $config = []): void
+    public function setAssumeRoleRequest(string $roleArn, array $config = []): void
     {
         if (! isset($config['RoleArn'])) {
             $config['RoleArn'] = config('sts.role_arn');

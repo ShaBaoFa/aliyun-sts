@@ -1,5 +1,5 @@
-# component-creator
+# aliyun-sts
 
 ```
-composer create-project hyperf/component-creator
+composer require wlfpanda1012/aliyun-sts
 ```

@@ -10,6 +10,6 @@ declare(strict_types=1);
  * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
  */
 
-namespace Wlfpanda1012\Sts\Constants;
+namespace Wlfpanda1012\AliyunSts\Constants;
 
 enum OSSCondition {}
