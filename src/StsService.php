@@ -18,50 +18,39 @@ use AlibabaCloud\SDK\Sts\V20150401\Sts;
 use AlibabaCloud\Tea\Utils\Utils\RuntimeOptions;
 use Darabonba\OpenApi\Models\Config;
 use Hyperf\Stringable\Str;
-
-use function Hyperf\Config\config;
+use JetBrains\PhpStorm\ArrayShape;
 
 class StsService
 {
     protected Sts $sts;
 
-    protected AssumeRoleResponse $assumeRoleResponse;
-
     protected RuntimeOptions $runtimeOptions;
 
+    protected string $roleArn;
+
+    #[ArrayShape([
+        'access_key_id' => 'string',
+        'access_key_secret' => 'string',
+        'endpoint' => 'string',
+    ])]
     public function __construct(array $options = [])
     {
         $config = new Config([
-            'accessKeyId' => $options['access_key_id'] ?? config('sts.access_key_id'),
-            'accessKeySecret' => $options['access_key_secret'] ?? config('sts.access_key_secret'),
-            'endpoint' => $options['endpoint'] ?? config('sts.endpoint'),
+            'accessKeyId' => $options['access_key_id'],
+            'accessKeySecret' => $options['access_key_secret'],
+            'endpoint' => $options['endpoint'],
         ]);
+        $this->roleArn = $options['role_arn'];
         $this->sts = new Sts($config);
     }
 
-    public function generateAssumeRoleRequest(array $map = []): AssumeRoleRequest
+    public function generateAssumeRoleRequest(string $policy,string $roleSessionName = null ,int $durationSeconds = 3600, ?string $externaId = null): AssumeRoleRequest
     {
-        /**
-         * 保证与 AssumeRoleRequest::fromMap 保持一致.
-         */
-        $map = $this->convertKeysToStudlyCase($map);
-
-        if (! isset($map['RoleArn'])) {
-            $map['RoleArn'] = config('sts.role_arn');
-        }
-        if (! isset($map['RoleSessionName'])) {
-            $map['RoleSessionName'] = config('sts.role_session_name');
-        }
-        if (! isset($map['DurationSeconds'])) {
-            $map['DurationSeconds'] = config('sts.duration_seconds');
-        }
-        if (! isset($map['ExternalId'])) {
-            $map['ExternalId'] = config('sts.external_id');
-        }
-        if (empty($map['Policy'])) {
-            $map['Policy'] = config('sts.policy');
-        }
-
+        $map['RoleArn'] = $this->roleArn;
+        $map['DurationSeconds'] = $durationSeconds;
+        $map['Policy'] = $policy;
+        $roleSessionName && $map['RoleSessionName'] = $roleSessionName;
+        $externaId && $map['ExternalId'] = $externaId;
         return AssumeRoleRequest::fromMap($map);
     }
 
@@ -82,38 +71,31 @@ class StsService
 
     public function assumeRole(AssumeRoleRequest $request): AssumeRoleResponse
     {
-        $this->assumeRoleResponse = $this->sts->assumeRole($request);
-        return $this->getAssumeRoleResponse();
+        return $this->sts->assumeRole($request);
     }
 
-    public function getCredentials() {}
-
-    public function getAssumeRoleResponse(): AssumeRoleResponse
+    public function getCredentials(AssumeRoleResponse $assumeRoleResponse): array
     {
-        return $this->assumeRoleResponse;
+        return $assumeRoleResponse->body->credentials->toMap();
     }
 
-    public function generateStatement(string $effect, array $action, array $resource, array $condition = []): array
+    public function generateStatement(string $effect, array $action, array $resource, ?array $condition = null): array
     {
         $statement = [
             'Effect' => $effect,
             'Action' => $action,
             'Resource' => $resource,
         ];
-        if (! empty($condition)) {
-            $statement = array_merge($statement, ['Condition' => $condition]);
-        }
+        $condition && $statement = array_merge($statement, ['Condition' => $condition]);
         return $statement;
     }
 
-    public function generatePolicy(array $statement): array
+    public function generatePolicy(array $statement): string
     {
-        return [
-            'policy' => [
-                'Version' => '1',
-                'Statement' => $statement,
-            ],
-        ];
+        return json_encode([
+            'Version' => '1',
+            'Statement' => $statement,
+        ]);
     }
 
     private function convertKeysToStudlyCase(array $array): array

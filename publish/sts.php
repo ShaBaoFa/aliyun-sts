@@ -18,7 +18,7 @@ return [
     'role_session_name' => env('STS_ROLE_SESSION_NAME', 'xxxxxxxxxxx'),
     'endpoint' => env('STS_ENDPOINT', 'sts.cn-hangzhou.aliyuncs.com'),
     'duration_seconds' => env('STS_DURATION_SECONDS', 3000),
-    'external_id' => env('STS_EXTERNAL_ID', ''),
+    'external_id' => env('STS_EXTERNAL_ID', 'external_id_test'),
     /**
      * 授予RAM用户使用OSS命令行工具访问目录mybucket/hangzhou/2014/和mybucket/hangzhou/2015/并列举目录中文件的权限.
      *
