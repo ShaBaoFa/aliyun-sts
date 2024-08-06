@@ -38,19 +38,19 @@ class StsService
         $config = new Config([
             'accessKeyId' => $options['access_key_id'],
             'accessKeySecret' => $options['access_key_secret'],
-            'endpoint' => $options['endpoint'],
+            'endpoint' => $options['endpoint'] ?? 'sts.cn-hangzhou.aliyuncs.com',
         ]);
         $this->roleArn = $options['role_arn'];
         $this->sts = new Sts($config);
     }
 
-    public function generateAssumeRoleRequest(string $policy,string $roleSessionName = null ,int $durationSeconds = 3600, ?string $externaId = null): AssumeRoleRequest
+    public function generateAssumeRoleRequest(string $policy, string $roleSessionName, int $durationSeconds = 3600, ?string $externalId = null): AssumeRoleRequest
     {
         $map['RoleArn'] = $this->roleArn;
-        $map['DurationSeconds'] = $durationSeconds;
+        $map['DurationSeconds'] = $durationSeconds ?? 3600;
         $map['Policy'] = $policy;
-        $roleSessionName && $map['RoleSessionName'] = $roleSessionName;
-        $externaId && $map['ExternalId'] = $externaId;
+        $map['RoleSessionName'] = $roleSessionName;
+        $externalId && $map['ExternalId'] = $externalId;
         return AssumeRoleRequest::fromMap($map);
     }
 
