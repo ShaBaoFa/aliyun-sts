@@ -56,4 +56,12 @@ return [
             ],
         ],
     ],
+    /**
+     * OSS相关.
+     */
+    'oss' => [
+        'bucket' => env('OSS_BUCKET', '*'),
+        'account_uid' => env('OSS_ACCOUNT_UID', '*'),
+        'region_id' => env('OSS_REGION_ID', '*'),
+    ],
 ];

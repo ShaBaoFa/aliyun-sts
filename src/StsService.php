@@ -18,7 +18,7 @@ use AlibabaCloud\SDK\Sts\V20150401\Sts;
 use AlibabaCloud\Tea\Utils\Utils\RuntimeOptions;
 use Darabonba\OpenApi\Models\Config;
 use Hyperf\Stringable\Str;
-use JetBrains\PhpStorm\ArrayShape;
+use LogicException;
 
 class StsService
 {
@@ -28,11 +28,6 @@ class StsService
 
     protected string $roleArn;
 
-    #[ArrayShape([
-        'access_key_id' => 'string',
-        'access_key_secret' => 'string',
-        'endpoint' => 'string',
-    ])]
     public function __construct(array $options = [])
     {
         $config = new Config([
@@ -76,7 +71,7 @@ class StsService
 
     public function getCredentials(AssumeRoleResponse $assumeRoleResponse): array
     {
-        return $assumeRoleResponse->body->credentials->toMap();
+        return $this->convertKeysToSnakeCase($assumeRoleResponse->body->credentials->toMap());
     }
 
     public function generateStatement(string $effect, array $action, array $resource, ?array $condition = null): array
@@ -98,7 +93,7 @@ class StsService
         ]);
     }
 
-    private function convertKeysToStudlyCase(array $array): array
+    protected function convertKeysToStudlyCase(array $array): array
     {
         $convertedArray = [];
         foreach ($array as $key => $value) {
@@ -114,5 +109,61 @@ class StsService
         }
 
         return $convertedArray;
+    }
+
+    protected function convertKeysToSnakeCase(array $array): array
+    {
+        $convertedArray = [];
+        foreach ($array as $key => $value) {
+            // 将键名转换为 StudlyCase 格式
+            $newKey = is_string($key) ? Str::snake($key) : $key;
+            // 如果值是数组，则递归调用
+            if (is_array($value)) {
+                $value = $this->{__FUNCTION__}($value);
+            }
+
+            // 将转换后的键和值放入新数组
+            $convertedArray[$newKey] = $value;
+        }
+
+        return $convertedArray;
+    }
+
+    protected function normalizePath(string $path): string
+    {
+        $path = str_replace('\\', '/', $path);
+        $this->rejectFunkyWhiteSpace($path);
+        return $this->normalizeRelativePath($path);
+    }
+
+    private function rejectFunkyWhiteSpace(string $path): void
+    {
+        if (preg_match('#\p{C}+#u', $path)) {
+            throw new LogicException('Invalid characters in path');
+        }
+    }
+
+    private function normalizeRelativePath(string $path): string
+    {
+        $parts = [];
+
+        foreach (explode('/', $path) as $part) {
+            switch ($part) {
+                case '':
+                case '.':
+                    break;
+                case '..':
+                    if (empty($parts)) {
+                        throw new LogicException('Invalid path');
+                    }
+                    array_pop($parts);
+                    break;
+                default:
+                    $parts[] = $part;
+                    break;
+            }
+        }
+
+        return implode('/', $parts);
     }
 }

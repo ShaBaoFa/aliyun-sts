@@ -20,10 +20,16 @@ class OssRamService extends StsService
 {
     protected string $bucket;
 
+    protected string $account_uid;
+
+    protected string $region_id;
+
     public function __construct(array $option)
     {
         parent::__construct($option);
-        $this->bucket = $option['bucket'];
+        $this->bucket = $option['oss']['bucket'] ?? '*';
+        $this->account_uid = $option['oss']['account_uid'] ?? '*';
+        $this->region_id = $option['oss']['region_id'] ?? '*';
     }
 
     public function handleObjectAndReturnToken(OSSEffect $effect, array $actions, array|string $path): array
@@ -79,6 +85,6 @@ class OssRamService extends StsService
 
     private function assembleResource(string $path): string
     {
-        return 'acs:oss:*:*:' . $this->bucket . '/' . $path;
+        return sprintf('acs:oss:%s:%s:%s/%s', $this->region_id, $this->account_uid, $this->bucket, $this->normalizePath($path));
     }
 }
