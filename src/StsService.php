@@ -18,7 +18,7 @@ use AlibabaCloud\SDK\Sts\V20150401\Sts;
 use AlibabaCloud\Tea\Utils\Utils\RuntimeOptions;
 use Darabonba\OpenApi\Models\Config;
 use Hyperf\Stringable\Str;
-use LogicException;
+use Wlfpanda1012\AliyunSts\Exception\InvalidArgumentException;
 
 class StsService
 {
@@ -139,7 +139,7 @@ class StsService
     private function rejectFunkyWhiteSpace(string $path): void
     {
         if (preg_match('#\p{C}+#u', $path)) {
-            throw new LogicException('Invalid characters in path');
+            throw new InvalidArgumentException('Invalid characters in path: ' . $path);
         }
     }
 
@@ -154,7 +154,7 @@ class StsService
                     break;
                 case '..':
                     if (empty($parts)) {
-                        throw new LogicException('Invalid path');
+                        throw new InvalidArgumentException('Invalid path: ' . $path);
                     }
                     array_pop($parts);
                     break;
