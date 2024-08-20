@@ -20,7 +20,17 @@ enum OSSAction: string
     /**
      * 所有行为.
      */
-    case ALL = 'oss.*';
+    case ALL = 'oss:*';
+
+    /**
+     * 所有上传行为.
+     */
+    case ALL_PUT = 'oss:Put*';
+
+    /**
+     * 所有下载行为.
+     */
+    case ALL_GET = 'oss:Get*';
 
     /**
      * 上传文件（Object）。

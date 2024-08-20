@@ -63,5 +63,12 @@ return [
         'bucket' => env('OSS_BUCKET', '*'),
         'account_uid' => env('OSS_ACCOUNT_UID', '*'),
         'region_id' => env('OSS_REGION_ID', '*'),
+        'callback' => [
+            'callbackUrl' => env('OSS_CALLBACK_URL', 'http://127.0.0.1:9501/callback'),
+            'callbackHost' => env('OSS_CALLBACK_HOST', '127.0.0.1'),
+            'callbackBody' => env('OSS_CALLBACK_BODY', 'filename=${object}&size=${size}&mimeType=${mimeType}&height=${imageInfo.height}&width=${imageInfo.width}'),
+            'callbackSNI' => env('OSS_CALLBACK_SNI', false),
+            'callbackBodyType' => env('OSS_CALLBACK_BODY_TYPE', 'application/x-www-form-urlencoded'),
+        ]
     ],
 ];
