@@ -69,6 +69,6 @@ return [
             'callbackBody' => env('OSS_CALLBACK_BODY', 'filename=${object}&size=${size}&mimeType=${mimeType}&height=${imageInfo.height}&width=${imageInfo.width}'),
             'callbackSNI' => env('OSS_CALLBACK_SNI', false),
             'callbackBodyType' => env('OSS_CALLBACK_BODY_TYPE', 'application/x-www-form-urlencoded'),
-        ]
+        ],
     ],
 ];

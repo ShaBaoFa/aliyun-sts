@@ -12,6 +12,4 @@ declare(strict_types=1);
 
 namespace Wlfpanda1012\AliyunSts\Exception;
 
-class InvalidArgumentException extends \InvalidArgumentException
-{
-}
+class InvalidArgumentException extends \InvalidArgumentException {}
