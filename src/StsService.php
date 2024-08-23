@@ -71,7 +71,9 @@ class StsService
 
     public function getCredentials(AssumeRoleResponse $assumeRoleResponse): array
     {
-        return $this->convertKeysToSnakeCase($assumeRoleResponse->body->credentials->toMap());
+        $credentials = $assumeRoleResponse->body->credentials->toMap();
+        $credentials['Expiration'] = strtotime($credentials['Expiration']);
+        return $this->convertKeysToSnakeCase($credentials);
     }
 
     public function generateStatement(string $effect, array $action, array $resource, ?array $condition = null): array
