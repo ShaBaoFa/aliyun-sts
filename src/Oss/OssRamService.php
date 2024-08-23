@@ -32,43 +32,43 @@ class OssRamService extends StsService
         $this->region_id = $option['oss']['region_id'] ?? '*';
     }
 
-    public function allowGetObject(array|string $path, array $options = []): array
+    public function allowGetObject(array|string $path, int $durationSeconds = 3600, array $options = []): array
     {
         $actions = [OSSAction::ALL_GET->value];
         if (isset($options['actions'])) {
             $actions = array_merge($actions, $options['actions']);
         }
-        return $this->handleObjectAndReturnToken(OSSEffect::ALLOW, $actions, $path);
+        return $this->handleObjectAndReturnToken(OSSEffect::ALLOW, $actions, $path, $durationSeconds);
     }
 
-    public function denyGetObject(array|string $path, array $options = []): array
+    public function denyGetObject(array|string $path, int $durationSeconds = 3600, array $options = []): array
     {
         $actions = [OSSAction::ALL_GET->value];
         if (isset($options['actions'])) {
             $actions = array_merge($actions, $options['actions']);
         }
-        return $this->handleObjectAndReturnToken(OSSEffect::DENY, $actions, $path);
+        return $this->handleObjectAndReturnToken(OSSEffect::DENY, $actions, $path, $durationSeconds);
     }
 
-    public function denyPutObject(array|string $path, array $options = []): array
+    public function denyPutObject(array|string $path, int $durationSeconds = 3600, array $options = []): array
     {
         $actions = [OSSAction::ALL_PUT->value];
         if (isset($options['actions'])) {
             $actions = array_merge($actions, $options['actions']);
         }
-        return $this->handleObjectAndReturnToken(OSSEffect::DENY, $actions, $path);
+        return $this->handleObjectAndReturnToken(OSSEffect::DENY, $actions, $path, $durationSeconds);
     }
 
-    public function allowPutObject(array|string $path, array $options = []): array
+    public function allowPutObject(array|string $path, int $durationSeconds = 3600, array $options = []): array
     {
         $actions = [OSSAction::ALL_PUT->value];
         if (isset($options['actions'])) {
             $actions = array_merge($actions, $options['actions']);
         }
-        return $this->handleObjectAndReturnToken(OSSEffect::ALLOW, $actions, $path);
+        return $this->handleObjectAndReturnToken(OSSEffect::ALLOW, $actions, $path, $durationSeconds);
     }
 
-    private function handleObjectAndReturnToken(OSSEffect $effect, array $actions, array|string $path): array
+    private function handleObjectAndReturnToken(OSSEffect $effect, array $actions, array|string $path, int $durationSeconds = 3600): array
     {
         $resource = [];
         if (is_array($path)) {
@@ -79,7 +79,7 @@ class OssRamService extends StsService
             $resource[] = $this->assembleResource($path);
         }
         $policy = $this->generatePolicy([$this->generateStatement($effect->value, $actions, $resource)]);
-        $response = $this->assumeRole($this->generateAssumeRoleRequest($policy, md5($policy)));
+        $response = $this->assumeRole($this->generateAssumeRoleRequest(policy: $policy, roleSessionName: md5($policy), durationSeconds: $durationSeconds));
         return $this->getCredentials($response);
     }
 
