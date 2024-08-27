@@ -13,7 +13,7 @@ use function Hyperf\Support\env;
 
 return [
     /**
-     * STS相关
+     * STS相关.
      */
     'access_key_id' => env('STS_ACCESS_KEY_ID', 'LTAI4---------44pg8'),
     'access_key_secret' => env('STS_ACCESS_KEY_SECRET', 'oibIsys6xl---------ETocTR'),
