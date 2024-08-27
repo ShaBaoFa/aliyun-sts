@@ -34,38 +34,45 @@ class OssRamService extends StsService
 
     public function allowGetObject(array|string $path, int $durationSeconds = 3600, array $options = []): array
     {
-        $actions = [OSSAction::ALL_GET->value];
-        if (isset($options['actions'])) {
-            $actions = array_merge($actions, $options['actions']);
-        }
-        return $this->handleObjectAndReturnToken(OSSEffect::ALLOW, $actions, $path, $durationSeconds);
+        return $this->handleObjectAndReturnToken(OSSEffect::ALLOW, $this->processActions($options, OSSAction::ALL_GET), $path, $durationSeconds);
     }
 
     public function denyGetObject(array|string $path, int $durationSeconds = 3600, array $options = []): array
     {
-        $actions = [OSSAction::ALL_GET->value];
-        if (isset($options['actions'])) {
-            $actions = array_merge($actions, $options['actions']);
-        }
-        return $this->handleObjectAndReturnToken(OSSEffect::DENY, $actions, $path, $durationSeconds);
+        return $this->handleObjectAndReturnToken(OSSEffect::DENY, $this->processActions($options, OSSAction::ALL_GET), $path, $durationSeconds);
     }
 
     public function denyPutObject(array|string $path, int $durationSeconds = 3600, array $options = []): array
     {
-        $actions = [OSSAction::ALL_PUT->value];
-        if (isset($options['actions'])) {
-            $actions = array_merge($actions, $options['actions']);
-        }
-        return $this->handleObjectAndReturnToken(OSSEffect::DENY, $actions, $path, $durationSeconds);
+        return $this->handleObjectAndReturnToken(OSSEffect::DENY, $this->processActions($options, OSSAction::ALL_PUT), $path, $durationSeconds);
     }
 
     public function allowPutObject(array|string $path, int $durationSeconds = 3600, array $options = []): array
     {
-        $actions = [OSSAction::ALL_PUT->value];
+        return $this->handleObjectAndReturnToken(OSSEffect::ALLOW, $this->processActions($options, OSSAction::ALL_PUT), $path, $durationSeconds);
+    }
+
+    private function processActions(array $options, OSSAction $defaultActions): array
+    {
+        $actions = [];
+
         if (isset($options['actions'])) {
-            $actions = array_merge($actions, $options['actions']);
+            if (is_array($options['actions'])) {
+                foreach ($options['actions'] as $item) {
+                    if ($item instanceof OSSAction) {
+                        $actions[] = $item->value;
+                    }
+                }
+            } elseif ($options['actions'] instanceof OSSAction) {
+                $actions[] = $options['actions']->value;
+            }
         }
-        return $this->handleObjectAndReturnToken(OSSEffect::ALLOW, $actions, $path, $durationSeconds);
+
+        if (empty($actions)) {
+            $actions = [$defaultActions->value];
+        }
+
+        return $actions;
     }
 
     private function handleObjectAndReturnToken(OSSEffect $effect, array $actions, array|string $path, int $durationSeconds = 3600): array
