@@ -19,8 +19,12 @@ use AlibabaCloud\Tea\Utils\Utils\RuntimeOptions;
 use Darabonba\OpenApi\Models\Config;
 use Hyperf\Stringable\Str;
 use Wlfpanda1012\AliyunSts\Exception\InvalidArgumentException;
+use Wlfpanda1012\CommonSts\Contract\StsAdapter;
+use Wlfpanda1012\CommonSts\Response\StsTokenResponse;
 
-class StsService
+use function Hyperf\Support\make;
+
+class StsService implements StsAdapter
 {
     protected Sts $sts;
 
@@ -37,6 +41,22 @@ class StsService
         ]);
         $this->roleArn = $options['role_arn'];
         $this->sts = new Sts($config);
+    }
+
+    public function getToken(mixed $data, array $config = []): StsTokenResponse
+    {
+        if (is_array($data['policy'])) {
+            $data['policy'] = json_encode($data['policy']);
+        }
+        $request = $this->generateAssumeRoleRequest(policy: $data['policy'], roleSessionName: md5($data['policy']), durationSeconds: $data['duration_seconds'] ?? 3600, externalId: $data['external_id'] ?? null);
+        $response = $this->sts->assumeRole($request);
+        $credentials = $response->body->credentials;
+        return make(StsTokenResponse::class, [
+            'accessKeyId' => $credentials->accessKeyId,
+            'accessKeySecret' => $credentials->accessKeySecret,
+            'expireTime' => strtotime($credentials->expiration),
+            'sessionToken' => $credentials->securityToken,
+        ]);
     }
 
     public function generateAssumeRoleRequest(string $policy, string $roleSessionName, int $durationSeconds = 3600, ?string $externalId = null): AssumeRoleRequest
