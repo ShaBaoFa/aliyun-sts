@@ -45,6 +45,7 @@ class StsService implements StsAdapter
 
     public function getToken(mixed $data, array $config = []): StsTokenResponse
     {
+        // 适配 easy-sts
         if (is_array($data['policy'])) {
             $data['policy'] = json_encode($data['policy']);
         }
