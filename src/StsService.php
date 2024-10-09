@@ -58,15 +58,15 @@ class StsService implements StsAdapter, StoragePolicyGenerator
         ]);
     }
 
-    public function storagePolicy(string $effect, array $actions, array|string $path): array
+    public function storagePolicy(string $effect, array $actions, array|string $path, array $config = []): array
     {
         $resource = [];
         if (is_array($path)) {
             foreach ($path as $item) {
-                $resource[] = $this->assembleResource($item);
+                $resource[] = $this->assembleResource($item, $config);
             }
         } else {
-            $resource[] = $this->assembleResource($path);
+            $resource[] = $this->assembleResource($path, $config);
         }
         return json_decode($this->generatePolicy([$this->generateStatement($effect, $actions, $resource)]));
     }
@@ -170,12 +170,13 @@ class StsService implements StsAdapter, StoragePolicyGenerator
         return $this->normalizeRelativePath($path);
     }
 
-    private function assembleResource(string $path): string
+    private function assembleResource(string $path, array $config): string
     {
         /**
          * 默认设置最大范围,通过 RAM 用户 基础范围 + 文件url 控制.
          */
-        return sprintf('acs:oss:%s:%s:%s/%s', '*', '*', '*', $this->normalizePath($path));
+
+        return sprintf('acs:oss:%s:%s:%s/%s', $config['region_id'] ?? '*', $config['account_uid'] ?? '*', $config['bucket'] ?? '*', $this->normalizePath($path));
     }
 
     private function rejectFunkyWhiteSpace(string $path): void
