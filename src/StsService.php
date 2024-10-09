@@ -19,12 +19,13 @@ use AlibabaCloud\Tea\Utils\Utils\RuntimeOptions;
 use Darabonba\OpenApi\Models\Config;
 use Hyperf\Stringable\Str;
 use Wlfpanda1012\AliyunSts\Exception\InvalidArgumentException;
+use Wlfpanda1012\CommonSts\Contract\StoragePolicyGenerator;
 use Wlfpanda1012\CommonSts\Contract\StsAdapter;
 use Wlfpanda1012\CommonSts\Response\StsTokenResponse;
 
 use function Hyperf\Support\make;
 
-class StsService implements StsAdapter
+class StsService implements StsAdapter, StoragePolicyGenerator
 {
     protected Sts $sts;
 
@@ -43,13 +44,10 @@ class StsService implements StsAdapter
         $this->sts = new Sts($config);
     }
 
-    public function getToken(mixed $data, array $config = []): StsTokenResponse
+    public function getToken(array $policy, array $config = []): StsTokenResponse
     {
         // 适配 easy-sts
-        if (is_array($data['policy'])) {
-            $data['policy'] = json_encode($data['policy']);
-        }
-        $request = $this->generateAssumeRoleRequest(policy: $data['policy'], roleSessionName: md5($data['policy']), durationSeconds: $data['duration_seconds'] ?? 3600, externalId: $data['external_id'] ?? null);
+        $request = $this->generateAssumeRoleRequest(policy: json_encode($policy), roleSessionName: md5(json_encode($policy)), durationSeconds: $config['duration_seconds'] ?? 3600, externalId: $config['external_id'] ?? null);
         $response = $this->sts->assumeRole($request);
         $credentials = $response->body->credentials;
         return make(StsTokenResponse::class, [
@@ -58,6 +56,19 @@ class StsService implements StsAdapter
             'expireTime' => strtotime($credentials->expiration),
             'sessionToken' => $credentials->securityToken,
         ]);
+    }
+
+    public function storagePolicy(string $effect, array $actions, array|string $path): array
+    {
+        $resource = [];
+        if (is_array($path)) {
+            foreach ($path as $item) {
+                $resource[] = $this->assembleResource($item);
+            }
+        } else {
+            $resource[] = $this->assembleResource($path);
+        }
+        return json_decode($this->generatePolicy([$this->generateStatement($effect, $actions, $resource)]));
     }
 
     public function generateAssumeRoleRequest(string $policy, string $roleSessionName, int $durationSeconds = 3600, ?string $externalId = null): AssumeRoleRequest
@@ -157,6 +168,14 @@ class StsService implements StsAdapter
         $path = str_replace('\\', '/', $path);
         $this->rejectFunkyWhiteSpace($path);
         return $this->normalizeRelativePath($path);
+    }
+
+    private function assembleResource(string $path): string
+    {
+        /**
+         * 默认设置最大范围,通过 RAM 用户 基础范围 + 文件url 控制.
+         */
+        return sprintf('acs:oss:%s:%s:%s/%s', '*', '*', '*', $this->normalizePath($path));
     }
 
     private function rejectFunkyWhiteSpace(string $path): void
