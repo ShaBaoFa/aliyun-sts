@@ -17,6 +17,7 @@ use AlibabaCloud\SDK\Sts\V20150401\Models\AssumeRoleResponse;
 use AlibabaCloud\SDK\Sts\V20150401\Sts;
 use AlibabaCloud\Tea\Utils\Utils\RuntimeOptions;
 use Darabonba\OpenApi\Models\Config;
+use DateTime;
 use Hyperf\Stringable\Str;
 use Wlfpanda1012\AliyunSts\Exception\InvalidArgumentException;
 use Wlfpanda1012\CommonSts\Contract\StoragePolicyGenerator;
@@ -53,7 +54,7 @@ class StsService implements StsAdapter, StoragePolicyGenerator
         return make(StsTokenResponse::class, [
             'accessKeyId' => $credentials->accessKeyId,
             'accessKeySecret' => $credentials->accessKeySecret,
-            'expireTime' => strtotime($credentials->expiration),
+            'expireTime' => new DateTime($credentials->expiration),
             'sessionToken' => $credentials->securityToken,
         ]);
     }
