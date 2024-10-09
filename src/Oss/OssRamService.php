@@ -85,7 +85,7 @@ class OssRamService extends StsService
         } else {
             $resource[] = $this->assembleResource($path);
         }
-        $policy = $this->generatePolicy([$this->generateStatement($effect->value, $actions, $resource)]);
+        $policy = json_encode($this->generatePolicy([$this->generateStatement($effect->value, $actions, $resource)]));
         $response = $this->assumeRole($this->generateAssumeRoleRequest(policy: $policy, roleSessionName: md5($policy), durationSeconds: $durationSeconds));
         return $this->getCredentials($response);
     }

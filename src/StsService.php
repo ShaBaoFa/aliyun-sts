@@ -68,7 +68,7 @@ class StsService implements StsAdapter, StoragePolicyGenerator
         } else {
             $resource[] = $this->assembleResource($path, $config);
         }
-        return json_decode($this->generatePolicy([$this->generateStatement($effect, $actions, $resource)]));
+        return $this->generatePolicy([$this->generateStatement($effect, $actions, $resource)]);
     }
 
     public function generateAssumeRoleRequest(string $policy, string $roleSessionName, int $durationSeconds = 3600, ?string $externalId = null): AssumeRoleRequest
@@ -119,12 +119,12 @@ class StsService implements StsAdapter, StoragePolicyGenerator
         return $statement;
     }
 
-    public function generatePolicy(array $statement): string
+    public function generatePolicy(array $statement): array
     {
-        return json_encode([
+        return [
             'Version' => '1',
             'Statement' => $statement,
-        ]);
+        ];
     }
 
     protected function convertKeysToStudlyCase(array $array): array
