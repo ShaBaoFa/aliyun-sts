@@ -24,8 +24,6 @@ use Wlfpanda1012\CommonSts\Contract\StoragePolicyGenerator;
 use Wlfpanda1012\CommonSts\Contract\StsAdapter;
 use Wlfpanda1012\CommonSts\Response\StsTokenResponse;
 
-use function Hyperf\Support\make;
-
 class StsService implements StsAdapter, StoragePolicyGenerator
 {
     protected Sts $sts;
@@ -51,12 +49,12 @@ class StsService implements StsAdapter, StoragePolicyGenerator
         $request = $this->generateAssumeRoleRequest(policy: json_encode($policy), roleSessionName: md5(json_encode($policy)), durationSeconds: $config['duration_seconds'] ?? 3600, externalId: $config['external_id'] ?? null);
         $response = $this->sts->assumeRole($request);
         $credentials = $response->body->credentials;
-        return make(StsTokenResponse::class, [
-            'accessKeyId' => $credentials->accessKeyId,
-            'accessKeySecret' => $credentials->accessKeySecret,
-            'expireTime' => new DateTime($credentials->expiration),
-            'sessionToken' => $credentials->securityToken,
-        ]);
+        return new StsTokenResponse(
+            $credentials->accessKeyId,
+            $credentials->accessKeySecret,
+            new DateTime($credentials->expiration),
+            $credentials->securityToken
+        );
     }
 
     public function storagePolicy(string $effect, array $actions, array|string $path, array $config = []): array

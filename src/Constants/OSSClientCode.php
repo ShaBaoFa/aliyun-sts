@@ -12,9 +12,6 @@ declare(strict_types=1);
 
 namespace Wlfpanda1012\AliyunSts\Constants;
 
-use Hyperf\Constants\Annotation\Constants;
-
-#[Constants]
 enum OSSClientCode: string
 {
     case OSS_CALLBACK = 'x-oss-callback';

@@ -12,7 +12,6 @@ declare(strict_types=1);
 
 namespace Wlfpanda1012\AliyunSts;
 
-! defined('BASE_PATH') && define('BASE_PATH', dirname(__DIR__, 1));
 class ConfigProvider
 {
     public function __invoke(): array
