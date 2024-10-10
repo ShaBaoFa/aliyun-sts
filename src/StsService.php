@@ -18,7 +18,6 @@ use AlibabaCloud\SDK\Sts\V20150401\Sts;
 use AlibabaCloud\Tea\Utils\Utils\RuntimeOptions;
 use Darabonba\OpenApi\Models\Config;
 use DateTime;
-use Hyperf\Stringable\Str;
 use Wlfpanda1012\AliyunSts\Exception\InvalidArgumentException;
 use Wlfpanda1012\CommonSts\Contract\StoragePolicyGenerator;
 use Wlfpanda1012\CommonSts\Contract\StsAdapter;
@@ -131,7 +130,8 @@ class StsService implements StsAdapter, StoragePolicyGenerator
         $convertedArray = [];
         foreach ($array as $key => $value) {
             // 将键名转换为 StudlyCase 格式
-            $newKey = is_string($key) ? Str::studly($key) : $key;
+
+            $newKey = is_string($key) ? static::studly($key) : $key;
             // 如果值是数组，则递归调用
             if (is_array($value)) {
                 $value = $this->{__FUNCTION__}($value);
@@ -149,7 +149,7 @@ class StsService implements StsAdapter, StoragePolicyGenerator
         $convertedArray = [];
         foreach ($array as $key => $value) {
             // 将键名转换为 StudlyCase 格式
-            $newKey = is_string($key) ? Str::snake($key) : $key;
+            $newKey = is_string($key) ? static::snake($key) : $key;
             // 如果值是数组，则递归调用
             if (is_array($value)) {
                 $value = $this->{__FUNCTION__}($value);
@@ -207,5 +207,28 @@ class StsService implements StsAdapter, StoragePolicyGenerator
         }
 
         return implode('/', $parts);
+    }
+
+    private static function snake(string $value, string $delimiter = '_'): string
+    {
+        if (! ctype_lower($value)) {
+            $value = preg_replace('/\s+/u', '', ucwords($value));
+
+            $value = static::lower(preg_replace('/(.)(?=[A-Z])/u', '$1' . $delimiter, $value));
+        }
+
+        return $value;
+    }
+
+    private static function lower($value): null|array|bool|string
+    {
+        return mb_strtolower($value, 'UTF-8');
+    }
+
+    private static function studly(string $value, string $gap = ''): string
+    {
+        $value = ucwords(str_replace(['-', '_'], ' ', $value));
+
+        return str_replace(' ', $gap, $value);
     }
 }
